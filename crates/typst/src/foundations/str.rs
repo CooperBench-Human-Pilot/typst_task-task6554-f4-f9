@@ -186,21 +186,28 @@ impl Str {
         #[named]
         #[default(1)]
         repeat: usize,
+        /// A string of characters to ignore at the start of the string before
+        /// extracting the first grapheme cluster.
+        #[named]
+        strip: Option<Str>,
     ) -> StrResult<Str> {
-        if self.0.is_empty() {
+        let mut s = self.as_str();
+        if let Some(strip) = &strip {
+            s = s.trim_start_matches(|c| strip.contains(c));
+        }
+        if s.is_empty() {
             return Err(string_is_empty());
         }
-        let count = self.0.graphemes(true).count();
+        let count = s.graphemes(true).count();
         if repeat > count {
             return Err(repeat_out_of_bounds(repeat, count));
         }
-        let end = self
-            .0
+        let end = s
             .grapheme_indices(true)
             .nth(repeat)
             .map(|(i, _)| i)
-            .unwrap_or(self.0.len());
-        Ok(self.0[..end].into())
+            .unwrap_or(s.len());
+        Ok(s[..end].into())
     }
 
     /// Extracts the last grapheme cluster of the string.
@@ -213,24 +220,31 @@ impl Str {
         #[named]
         #[default(1)]
         repeat: usize,
+        /// A string of characters to ignore at the end of the string before
+        /// extracting the last grapheme cluster.
+        #[named]
+        strip: Option<Str>,
     ) -> StrResult<Str> {
-        if self.0.is_empty() {
+        let mut s = self.as_str();
+        if let Some(strip) = &strip {
+            s = s.trim_end_matches(|c| strip.contains(c));
+        }
+        if s.is_empty() {
             return Err(string_is_empty());
         }
-        let count = self.0.graphemes(true).count();
+        let count = s.graphemes(true).count();
         if repeat > count {
             return Err(repeat_out_of_bounds(repeat, count));
         }
         if repeat == 0 {
             return Ok(Str::default());
         }
-        let start = self
-            .0
+        let start = s
             .grapheme_indices(true)
             .nth_back(repeat - 1)
             .map(|(i, _)| i)
             .unwrap_or(0);
-        Ok(self.0[start..].into())
+        Ok(s[start..].into())
     }
 
     /// Extracts the first grapheme cluster after the specified index. Returns
