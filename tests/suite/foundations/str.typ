@@ -97,6 +97,35 @@
 #test("🏳️‍🌈A🏳️‍⚧️".first(), "🏳️‍🌈")
 #test("🏳️‍🌈A🏳️‍⚧️".last(), "🏳️‍⚧️")
 
+--- string-first-and-last-repeat ---
+// Test the `repeat` parameter of the `first` and `last` methods.
+#test("hello".first(repeat: 3), "hel")
+#test("hello".last(repeat: 2), "lo")
+#test("hello".first(repeat: 1), "h")
+#test("hello".first(repeat: 5), "hello")
+#test("hello".last(repeat: 5), "hello")
+#test("hello".first(repeat: 0), "")
+#test("hello".last(repeat: 0), "")
+#test("🌍👋🎉".first(repeat: 2), "🌍👋")
+#test("🌍👋🎉".last(repeat: 2), "👋🎉")
+
+--- string-first-and-last-strip ---
+// Test the `strip` parameter of the `first` and `last` methods.
+#test("--foo".first(strip: "- "), "f")
+#test("bar!!".last(strip: "!?"), "r")
+#test("[item]".first(strip: "["), "i")
+// `strip` combined with `repeat`.
+#test("--foo".first(strip: "-", repeat: 2), "fo")
+#test("bar!!".last(strip: "!", repeat: 2), "ar")
+
+--- string-first-repeat-out-of-bounds ---
+// Error: 2-26 repeat is out of bounds (repeat: 6, len: 5)
+#"hello".first(repeat: 6)
+
+--- string-last-repeat-out-of-bounds ---
+// Error: 2-25 repeat is out of bounds (repeat: 6, len: 5)
+#"hello".last(repeat: 6)
+
 --- string-first-empty ---
 // Error: 2-12 string is empty
 #"".first()
