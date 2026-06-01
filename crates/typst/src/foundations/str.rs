@@ -179,23 +179,58 @@ impl Str {
     /// Extracts the first grapheme cluster of the string.
     /// Fails with an error if the string is empty.
     #[func]
-    pub fn first(&self) -> StrResult<Str> {
-        self.0
-            .graphemes(true)
-            .next()
-            .map(Into::into)
-            .ok_or_else(string_is_empty)
+    pub fn first(
+        &self,
+        /// Number of grapheme clusters to extract from the start. Fails with an
+        /// error if it exceeds the number of grapheme clusters in the string.
+        #[named]
+        #[default(1)]
+        repeat: usize,
+    ) -> StrResult<Str> {
+        if self.0.is_empty() {
+            return Err(string_is_empty());
+        }
+        let count = self.0.graphemes(true).count();
+        if repeat > count {
+            return Err(repeat_out_of_bounds(repeat, count));
+        }
+        let end = self
+            .0
+            .grapheme_indices(true)
+            .nth(repeat)
+            .map(|(i, _)| i)
+            .unwrap_or(self.0.len());
+        Ok(self.0[..end].into())
     }
 
     /// Extracts the last grapheme cluster of the string.
     /// Fails with an error if the string is empty.
     #[func]
-    pub fn last(&self) -> StrResult<Str> {
-        self.0
-            .graphemes(true)
-            .next_back()
-            .map(Into::into)
-            .ok_or_else(string_is_empty)
+    pub fn last(
+        &self,
+        /// Number of grapheme clusters to extract from the end. Fails with an
+        /// error if it exceeds the number of grapheme clusters in the string.
+        #[named]
+        #[default(1)]
+        repeat: usize,
+    ) -> StrResult<Str> {
+        if self.0.is_empty() {
+            return Err(string_is_empty());
+        }
+        let count = self.0.graphemes(true).count();
+        if repeat > count {
+            return Err(repeat_out_of_bounds(repeat, count));
+        }
+        if repeat == 0 {
+            return Ok(Str::default());
+        }
+        let start = self
+            .0
+            .grapheme_indices(true)
+            .nth_back(repeat - 1)
+            .map(|(i, _)| i)
+            .unwrap_or(0);
+        Ok(self.0[start..].into())
     }
 
     /// Extracts the first grapheme cluster after the specified index. Returns
@@ -833,6 +868,12 @@ fn not_a_char_boundary(index: i64) -> EcoString {
 #[cold]
 fn string_is_empty() -> EcoString {
     "string is empty".into()
+}
+
+/// The error message when `repeat` exceeds the number of grapheme clusters.
+#[cold]
+fn repeat_out_of_bounds(repeat: usize, len: usize) -> EcoString {
+    eco_format!("repeat is out of bounds (repeat: {}, len: {})", repeat, len)
 }
 
 /// A regular expression.
