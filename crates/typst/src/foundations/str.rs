@@ -179,9 +179,18 @@ impl Str {
     /// Extracts the first grapheme cluster of the string.
     /// Fails with an error if the string is empty.
     #[func]
-    pub fn first(&self) -> StrResult<Str> {
-        self.0
-            .graphemes(true)
+    pub fn first(
+        &self,
+        /// A string of characters to ignore at the start of the string before
+        /// extracting the first grapheme cluster.
+        #[named]
+        strip: Option<Str>,
+    ) -> StrResult<Str> {
+        let mut s = self.as_str();
+        if let Some(strip) = &strip {
+            s = s.trim_start_matches(|c| strip.contains(c));
+        }
+        s.graphemes(true)
             .next()
             .map(Into::into)
             .ok_or_else(string_is_empty)
@@ -190,9 +199,18 @@ impl Str {
     /// Extracts the last grapheme cluster of the string.
     /// Fails with an error if the string is empty.
     #[func]
-    pub fn last(&self) -> StrResult<Str> {
-        self.0
-            .graphemes(true)
+    pub fn last(
+        &self,
+        /// A string of characters to ignore at the end of the string before
+        /// extracting the last grapheme cluster.
+        #[named]
+        strip: Option<Str>,
+    ) -> StrResult<Str> {
+        let mut s = self.as_str();
+        if let Some(strip) = &strip {
+            s = s.trim_end_matches(|c| strip.contains(c));
+        }
+        s.graphemes(true)
             .next_back()
             .map(Into::into)
             .ok_or_else(string_is_empty)
